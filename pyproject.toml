@@ -11,7 +11,7 @@ license = {text = "MIT"}
 dynamic = ["version"]
 dependencies = ["aiogram", "xn-model"]
 [project.optional-dependencies]
-dev = ["build", "python-dotenv", "pre-commit", "twine"]
+dev = ["build", "python-dotenv", "pre-commit", "setuptools-scm[toml]", "twine"]
 
 [project.urls]
 Homepage = "https://github.com/XyncNet/PGram"
