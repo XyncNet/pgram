@@ -1,5 +1,4 @@
 # PGram
-###### Blazingly fast start async telegram bot on top of the aiogram and tortoise-orm with postgres channels
 
 ### Install
 ```sh
