@@ -4,12 +4,12 @@ requires-python = ">=3.12"
 authors = [
     {name = "XyncNet", email = "code@xync.net"},
 ]
-keywords = ["aiogram", "xync-net", "postgres", "channels", "signals", "tortoise-rom"]
+keywords = ["aiogram", "xync-net", "postgres", "channels", "signals"]
 description = "Blazingly fast start async telegram bot on top of the aiogram and tortoise-orm with postgres channels"
 readme = "README.md"
 license = {text = "MIT"}
 dynamic = ["version"]
-dependencies = ["aiogram", "xn-model"]
+dependencies = ["aiogram", "asyncpg"]
 [project.optional-dependencies]
 dev = ["build", "python-dotenv", "pre-commit", "setuptools-scm[toml]", "twine"]
 

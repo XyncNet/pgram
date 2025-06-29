@@ -1,12 +1,8 @@
-import logging
-from asyncio import run
-
 from aiogram import Bot as BaseBot, Dispatcher, Router
 from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.base import BaseSession
 from aiogram.enums import UpdateType
 from tortoise.backends.asyncpg import AsyncpgDBClient
-from x_model import init_db
 
 
 class Bot(BaseBot):
@@ -41,8 +37,8 @@ class Bot(BaseBot):
     def __init__(
         self,
         token: str,
-        cn: AsyncpgDBClient = None,
         routers: list[Router] = None,
+        cn: AsyncpgDBClient = None,
         api_host: str = None,
         app_host: str = None,
         session: BaseSession = None,
@@ -56,6 +52,7 @@ class Bot(BaseBot):
         self.dp = Dispatcher()
         if routers:
             self.dp.include_routers(*routers)
+        self.dp.shutdown.register(self.stop)
 
     async def start(self):
         webhook_info = await self.get_webhook_info()
@@ -78,16 +75,3 @@ class Bot(BaseBot):
         """CLOSE BOT SESSION"""
         await self.delete_webhook(drop_pending_updates=True)
         await self.session.close()
-
-
-if __name__ == "__main__":
-    from ll import TOKEN, TORM
-
-    logging.basicConfig(level=logging.INFO)
-
-    async def main() -> None:
-        cn = await init_db(TORM)
-        bot = Bot(TOKEN, cn)
-        await bot.start()
-
-    run(main())
