@@ -7,6 +7,7 @@ from tortoise.backends.asyncpg import AsyncpgDBClient
 
 class Bot(BaseBot):
     dp: Dispatcher
+    store: object
     wh: str = None
     au: list[str] = [
         UpdateType.MESSAGE,
@@ -41,6 +42,7 @@ class Bot(BaseBot):
         cn: AsyncpgDBClient = None,
         api_host: str = None,
         app_host: str = None,
+        store: object = None,
         session: BaseSession = None,
         default: DefaultBotProperties = None,
         **kwargs,
@@ -48,6 +50,7 @@ class Bot(BaseBot):
         self.cn = cn
         self.wh = api_host
         self.app_host = app_host
+        self.store = store
         super().__init__(token, session, default, **kwargs)
         self.dp = Dispatcher()
         if routers:
