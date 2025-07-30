@@ -38,15 +38,15 @@ class Bot:
 
     def __init__(
         self,
-        routers: tuple[Router],
+        routers: list[Router] = None,
         au: list[UpdateType] = None,
         default: DefaultBotProperties = None,
     ) -> None:
-        self.dp.include_routers(*routers)
         if au:
             self.au = au
         self.default = default
         self.dp = Dispatcher()
+        # self.dp.include_routers(*routers)
         self.dp.shutdown.register(self.stop)
 
     async def start(
