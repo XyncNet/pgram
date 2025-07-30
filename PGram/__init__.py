@@ -46,7 +46,7 @@ class Bot:
             self.au = au
         self.default = default
         self.dp = Dispatcher()
-        # self.dp.include_routers(*routers)
+        self.dp.include_routers(*routers)
         self.dp.shutdown.register(self.stop)
 
     async def start(
@@ -68,7 +68,7 @@ class Bot:
             """ START POLLING """
             if webhook_info.url:
                 await self.bot.delete_webhook(True)
-            await self.dp.start_polling(self, polling_timeout=300, allowed_updates=self.au)
+            await self.dp.start_polling(self.bot, polling_timeout=300, allowed_updates=self.au)
         elif wh_host != webhook_info.url:
             """ WEBHOOK SETUP """
             await self.bot.set_webhook(
