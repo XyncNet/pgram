@@ -5,11 +5,12 @@ from aiogram.enums import UpdateType
 from tortoise.backends.asyncpg import AsyncpgDBClient
 
 
-class Bot(BaseBot):
+class Bot:
     dp: Dispatcher
     store: object
-    wh: str = None
-    au: list[str] = [
+    cn: AsyncpgDBClient
+    bot: BaseBot
+    au: list[UpdateType] = [
         UpdateType.MESSAGE,
         UpdateType.EDITED_MESSAGE,
         UpdateType.CHANNEL_POST,
@@ -37,44 +38,48 @@ class Bot(BaseBot):
 
     def __init__(
         self,
-        token: str,
-        routers: list[Router] = None,
-        cn: AsyncpgDBClient = None,
-        api_host: str = None,
-        app_host: str = None,
-        store: object = None,
-        session: BaseSession = None,
+        routers: tuple[Router],
+        au: list[UpdateType] = None,
         default: DefaultBotProperties = None,
-        **kwargs,
     ) -> None:
-        self.cn = cn
-        self.wh = api_host
-        self.app_host = app_host
-        self.store = store
-        super().__init__(token, session, default, **kwargs)
+        self.dp.include_routers(*routers)
+        if au:
+            self.au = au
+        self.default = default
         self.dp = Dispatcher()
-        if routers:
-            self.dp.include_routers(*routers)
         self.dp.shutdown.register(self.stop)
 
-    async def start(self):
-        webhook_info = await self.get_webhook_info()
-        if not self.wh:
+    async def start(
+        self,
+        token: str,
+        cn: AsyncpgDBClient = None,
+        wh_host: str = None,
+        # app_host: str = None,  # todo: app
+        store: object = None,
+        session: BaseSession = None,
+        **kwargs,
+    ):
+        self.cn = cn
+        # self.app_host = app_host
+        self.store = store
+        self.bot = BaseBot(token, session, self.default, **kwargs)
+        webhook_info = await self.bot.get_webhook_info()
+        if not wh_host:
+            """ START POLLING """
             if webhook_info.url:
-                await self.delete_webhook(True)
+                await self.bot.delete_webhook(True)
             await self.dp.start_polling(self, polling_timeout=300, allowed_updates=self.au)
-            return
-        """ WEBHOOK SETUP """
-        if webhook_info.url != self.wh:
-            await self.set_webhook(
-                url=self.wh,
+        elif wh_host != webhook_info.url:
+            """ WEBHOOK SETUP """
+            await self.bot.set_webhook(
+                url=wh_host,
                 drop_pending_updates=True,
                 allowed_updates=self.au,
-                secret_token=self.token.split(":")[1],
+                secret_token=self.bot.token.split(":")[1],
                 request_timeout=300,
             )
 
     async def stop(self) -> None:
         """CLOSE BOT SESSION"""
-        await self.delete_webhook(drop_pending_updates=True)
-        await self.session.close()
+        await self.bot.delete_webhook(drop_pending_updates=True)
+        await self.bot.session.close()
