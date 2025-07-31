@@ -44,7 +44,7 @@ class Bot:
         default: DefaultBotProperties = None,
     ) -> None:
         self.store = store
-        self.dp = Dispatcher(store=store)
+        self.dp = Dispatcher(name="disp", store=store)
         self.dp.include_routers(*routers)
         self.dp.shutdown.register(self.stop)
         if au:
@@ -58,26 +58,26 @@ class Bot:
         wh_host: str = None,
         # app_host: str = None,  # todo: app
         session: BaseSession = None,
-        **kwargs,
     ):
         self.cn = cn
         # self.app_host = app_host
-        self.bot = BaseBot(token, session, self.default, **kwargs)
+        self.bot = BaseBot(token, session, self.default)
         webhook_info = await self.bot.get_webhook_info()
         if not wh_host:
             """ START POLLING """
             if webhook_info.url:
                 await self.bot.delete_webhook(True)
             await self.dp.start_polling(self.bot, polling_timeout=300, allowed_updates=self.au)
-        elif wh_host != webhook_info.url:
+        elif (wh_url := wh_host + "/public/wh") != webhook_info.url:
             """ WEBHOOK SETUP """
             await self.bot.set_webhook(
-                url=wh_host,
+                url=wh_url,
                 drop_pending_updates=True,
                 allowed_updates=self.au,
                 secret_token=self.bot.token.split(":")[1],
                 request_timeout=300,
             )
+        return self
 
     async def stop(self) -> None:
         """CLOSE BOT SESSION"""
