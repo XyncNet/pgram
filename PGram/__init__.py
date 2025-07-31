@@ -39,15 +39,17 @@ class Bot:
     def __init__(
         self,
         routers: list[Router] = None,
+        store: object = None,
         au: list[UpdateType] = None,
         default: DefaultBotProperties = None,
     ) -> None:
+        self.store = store
+        self.dp = Dispatcher(store=store)
+        self.dp.include_routers(*routers)
+        self.dp.shutdown.register(self.stop)
         if au:
             self.au = au
         self.default = default
-        self.dp = Dispatcher()
-        self.dp.include_routers(*routers)
-        self.dp.shutdown.register(self.stop)
 
     async def start(
         self,
@@ -55,13 +57,11 @@ class Bot:
         cn: AsyncpgDBClient = None,
         wh_host: str = None,
         # app_host: str = None,  # todo: app
-        store: object = None,
         session: BaseSession = None,
         **kwargs,
     ):
         self.cn = cn
         # self.app_host = app_host
-        self.store = store
         self.bot = BaseBot(token, session, self.default, **kwargs)
         webhook_info = await self.bot.get_webhook_info()
         if not wh_host:
