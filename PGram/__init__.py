@@ -1,7 +1,14 @@
 from aiogram import Bot as BaseBot, Dispatcher, Router
 from aiogram.client.default import DefaultBotProperties
-from aiogram.client.session.base import BaseSession
 from aiogram.enums import UpdateType
+from aiogram.types import (
+    InlineKeyboardButton,
+    KeyboardButton,
+    Message,
+    InlineKeyboardMarkup,
+    ReplyKeyboardMarkup,
+    BufferedInputFile,
+)
 from tortoise.backends.asyncpg import AsyncpgDBClient
 
 
@@ -38,30 +45,28 @@ class Bot:
 
     def __init__(
         self,
+        token: str,
+        cn: AsyncpgDBClient = None,
         routers: list[Router] = None,
         store: object = None,
-        au: list[UpdateType] = None,
         default: DefaultBotProperties = None,
     ) -> None:
-        self.store = store
+        self.bot = BaseBot(token, default=default)
+        self.cn = cn
         self.dp = Dispatcher(name="disp", store=store)
-        self.dp.include_routers(*routers)
+        if routers:
+            self.dp.include_routers(*routers)
         self.dp.shutdown.register(self.stop)
-        if au:
-            self.au = au
-        self.default = default
 
     async def start(
         self,
-        token: str,
-        cn: AsyncpgDBClient = None,
+        au: list[UpdateType] = None,
         wh_host: str = None,
         # app_host: str = None,  # todo: app
-        session: BaseSession = None,
     ):
-        self.cn = cn
+        if au:
+            self.au = au
         # self.app_host = app_host
-        self.bot = BaseBot(token, session, self.default)
         webhook_info = await self.bot.get_webhook_info()
         if not wh_host:
             """ START POLLING """
@@ -83,3 +88,27 @@ class Bot:
         """CLOSE BOT SESSION"""
         await self.bot.delete_webhook(drop_pending_updates=True)
         await self.bot.session.close()
+
+    async def send(
+        self,
+        uid: int | str,
+        txt: str,
+        btns: list[InlineKeyboardButton | KeyboardButton] = None,
+        photo: bytes = None,
+        video: bytes = None,
+    ) -> Message:
+        ikm = (
+            (
+                InlineKeyboardMarkup(inline_keyboard=[btns])
+                if isinstance(btns[0], InlineKeyboardButton)
+                else ReplyKeyboardMarkup(keyboard=[btns], one_time_keyboard=True)
+            )
+            if btns
+            else None
+        )
+        if photo:
+            return await self.bot.send_photo(uid, BufferedInputFile(photo, "photo"), caption=txt, reply_markup=ikm)
+        elif video:
+            return await self.bot.send_video(uid, BufferedInputFile(video, "video"), caption=txt, reply_markup=ikm)
+        else:
+            return await self.bot.send_message(uid, txt, reply_markup=ikm)
