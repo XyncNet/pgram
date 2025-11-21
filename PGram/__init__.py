@@ -96,6 +96,7 @@ class Bot:
         btns: list[InlineKeyboardButton | KeyboardButton] = None,
         photo: bytes = None,
         video: bytes = None,
+        file: bytes = None,
     ) -> Message:
         ikm = (
             (
@@ -110,5 +111,9 @@ class Bot:
             return await self.bot.send_photo(uid, BufferedInputFile(photo, "photo"), caption=txt, reply_markup=ikm)
         elif video:
             return await self.bot.send_video(uid, BufferedInputFile(video, "video"), caption=txt, reply_markup=ikm)
+        elif file:
+            return await self.bot.send_document(
+                uid, BufferedInputFile(file, "error.log"), caption=txt, reply_markup=ikm
+            )
         else:
             return await self.bot.send_message(uid, txt, reply_markup=ikm)
