@@ -93,16 +93,16 @@ class Bot:
         self,
         uid: int | str,
         txt: str,
-        btns: list[InlineKeyboardButton | KeyboardButton] = None,
+        btns: list[list[InlineKeyboardButton | KeyboardButton]] = None,
         photo: bytes = None,
         video: bytes = None,
         file: bytes = None,
     ) -> Message:
         ikm = (
             (
-                InlineKeyboardMarkup(inline_keyboard=[btns])
-                if isinstance(btns[0], InlineKeyboardButton)
-                else ReplyKeyboardMarkup(keyboard=[btns], one_time_keyboard=True)
+                InlineKeyboardMarkup(inline_keyboard=btns)
+                if isinstance(btns[0][0], InlineKeyboardButton)
+                else ReplyKeyboardMarkup(keyboard=btns, one_time_keyboard=True)
             )
             if btns
             else None
