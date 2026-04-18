@@ -1,5 +1,6 @@
 from aiogram import Bot as BaseBot, Dispatcher, Router
 from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import UpdateType
 from aiogram.types import (
     InlineKeyboardButton,
@@ -50,8 +51,10 @@ class Bot:
         routers: list[Router] = None,
         store: object = None,
         default: DefaultBotProperties = None,
+        proxy: str = None,
     ) -> None:
-        self.bot = BaseBot(token, default=default)
+        session = AiohttpSession(proxy=proxy)
+        self.bot = BaseBot(token, default=default, session=session)
         self.cn = cn
         self.dp = Dispatcher(name="disp", store=store)
         if routers:
